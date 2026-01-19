@@ -8,6 +8,7 @@
         "repo": "nixpkgs"
       },
       "branch": "nixpkgs-unstable",
+      "submodules": false,
       "revision": "32f313e49e42f715491e1ea7b306a87c16fe0388",
       "url": "https://github.com/nixos/nixpkgs/archive/32f313e49e42f715491e1ea7b306a87c16fe0388.tar.gz",
       "hash": "1z4ga87qla5300qwib3dnjnkaywwh8y1qqsb8w2mrsrw78k9xmlw"
@@ -20,10 +21,11 @@
         "repo": "opam-nix"
       },
       "branch": "main",
+      "submodules": false,
       "revision": "0fa28f3ebeb8c6fe193646f2e15f3cd5d7cbeec2",
       "url": "https://github.com/tweag/opam-nix/archive/0fa28f3ebeb8c6fe193646f2e15f3cd5d7cbeec2.tar.gz",
       "hash": "159w0x0ik1y426isry7hf37rfmqnmsnshdcha58d4b6jryw9h7a7"
     }
   },
-  "version": 3
+  "version": 5
 }
