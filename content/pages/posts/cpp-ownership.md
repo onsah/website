@@ -209,6 +209,8 @@ First constructor takes an lvalue reference, so it will allocate a new buffer an
 
 This was a long one, so if you came this far, thank you! I hope now you have an understanding of the ownership system in C++. Essentially it's bunch of seemingly unrelated features that together forms a coherent (!) system. There is a lot more gritty details about this stuff, but for the most cases you don't need to know that well.
 
+Thanks to [Uğur](https://www.rugu.dev/) for his feedback on the initial draft.
+
 ## Further Reading
 If you liked what you read and want to dive deeper, I recommend looking into these:
 - [https://cbarrete.com/move-from-scratch.html](https://cbarrete.com/move-from-scratch.html)
