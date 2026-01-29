@@ -167,7 +167,7 @@ void vector<T>::grow(size_t new_capacity) {
   T* old_buffer = this->buffer;
   this->buffer = new_buffer;
   this->capacity = new_capacity;
-  delete[] new_buffer;
+  delete[] old_buffer;
 }
 ```
 
