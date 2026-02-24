@@ -34,9 +34,9 @@ SAT solvers usually expect boolean formulas in this form, because they are speci
 ## Testing Approach
 
 My approach is very simple:
-1. Generate random SAT instances, both SAT and UNSAT
+1. Generate random SAT instances, both SAT and UNSAT.
 2. Feed the SAT instance to the LLM.
-3. Verify the output
+3. Verify the output.
 
 ### Generating SAT problems
 
@@ -67,7 +67,10 @@ For each model reasoning was enabled, and the reasoning effort is set to high. I
 
 For each model, I used the same system prompt:
 ```
-The user will give a CNF in dimacs format. Determine if it's satisfiable or not WITHOUT USING ANY EXTERNAL TOOLS. Use your own reasoning. Don't stop even if the formula is too large just try to solve it manually. After determining the result output a JSON with two fields:
+The user will give a CNF in dimacs format.
+Determine if it's satisfiable or not WITHOUT USING ANY EXTERNAL TOOLS.
+Use your own reasoning. Don't stop even if the formula is too large just try to solve it manually.
+After determining the result output a JSON with two fields:
     - satisfiable: Boolean. True if the formula is satisfiable
     - assignment: Array of booleans. If the formula is satisfiable provide an assignment for each variable from 1 to N. If the formula is not satisfiable this field is null.
 
@@ -122,5 +125,5 @@ For UNSAT problems with 10 variables and 200 clauses it had the same issue as ot
 
 I don't claim that my findings are authoritative in any way. I tested with way too few formulas to make any claims about how random LLM output is. But I think it is sufficent to show that current LLMs don't consistently reason. There is a recent [research](https://arxiv.org/abs/2505.14615) that did a thorough testing with models such as GPT-4o, and found that for hard enough problems, every model degrades to random guessing. It would be nice to see this testing done again with newer models.
 
-I am not very knowledgeable about LLMs, but my gut feeling is that LLMs don't seem to be able to generalize logical rules such that it can solve a class of problem with 100% of accuracy. However, their statistical strength got so much better that it's way harder to find a case where they start to break down. I don't imply anything else such as LLMs being useful or not. They can be definitely useful without being able to reason, but lack of reasoning tells me that using LLMs unsupervised can be very dangerous as we can't trust them to apply logical rules consistently. 
+I am not very knowledgeable about LLMs, but my gut feeling is that LLMs don't seem to be able to generalize logical rules such that it can solve a class of problem with 100% of accuracy. However, their statistical strength got so much better that it's way harder to find a case where they start to break down. I don't imply anything else such as LLMs being useful or not. They can be definitely useful without being able to reason, but lack of reasoning tells me that using LLMs unsupervised can be very dangerous as we can't trust them to apply logical rules consistently. Of course in reality it makes more sense to offload as much as reasoning to external tools that are specifically designed for the problem, but as long as LLMs are doing the orchestration itself, they will always be responsible for determining how to delegate tasks to other tools, which needs proper reasoning.
 
