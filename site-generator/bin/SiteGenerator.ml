@@ -38,14 +38,11 @@ let parse_post_metadata ~(metadata : Yojson.Basic.t) : post_metadata =
   | _ -> raise (Invalid_argument "Expected json object")
 
 let post_path ~(title : string) =
-  "/posts/"
-  ^ (title |> String.lowercase |> Str.global_replace (Str.regexp " ") "-")
-  ^ ".html"
-
-let post_path2 ~(title : string) =
   Path.join (Path.from "posts")
     (Path.from
-       ((title |> String.lowercase |> Str.global_replace (Str.regexp " ") "-")
+       ((title |> String.lowercase
+        |> Str.global_replace (Str.regexp " ") "-"
+        |> Str.global_replace (Str.regexp "\?") "")
        ^ ".html"))
 
 let extract_summary ~post_component =
@@ -132,12 +129,12 @@ let generate_context ~content_path : Context.context =
                        ("createdat", String (created_at |> Date.to_string));
                        ("createdatRfc822", String (created_at |> Rfc822.of_date));
                        ("summary", String summary);
-                       ("path", String (post_path ~title));
+                       ("path", String (post_path ~title |> Path.to_string));
                        ("content", String post_text);
                        ( "url",
                          String
                            (sprintf "https://blog.aiono.dev/%s"
-                              (post_path2 ~title |> Path.to_string)) );
+                              (post_path ~title |> Path.to_string)) );
                      ]))) )
   in
   Map.of_alist_exn
@@ -232,7 +229,7 @@ let generate ~content_path =
                TemplatingEngine.run ~template ~context
                |> Result.map_error ~f:TemplatingEngine.show_error
                |> Result.ok_or_failwith;
-             path = post_path2 ~title;
+             path = post_path ~title;
            })
   and feed_file =
     let template =
