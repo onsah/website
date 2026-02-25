@@ -79,7 +79,7 @@ Another example is modeling errors. In Go, when a function can return an error, 
 |Value 1|Value 2|Assumed|
 |-|-|-|
 |`present`|`null`|yes|
-|`null` | `null` |yes|
+|`null` | `present` |yes|
 |`present`|`present`|no|
 |`null`|`null`|no|
 
