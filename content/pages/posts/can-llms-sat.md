@@ -40,7 +40,7 @@ My approach is very simple:
 
 ### Generating SAT problems
 
-For the test to be fair for LLMs, the SAT instance should be reasonably large, but not too big. I can't just give SAT problems with thousands of variables since it would be too big. The problem should be not too small but also not too big. And it shouldn't be too easy.
+For the test to be fair for LLMs, the SAT instance should be reasonably large, but not too big. I can't just give SAT problems with thousands of variables. But also it shouldn't be too easy.
 
 I learned that for 4-SAT, if clause to variable ratio is more than 10, the generated problems become difficult to solve, and the likelihood of formula to be SAT or UNSAT is close to 50%. So I generated 3 types of formulas:
 1. SAT problem with 10 variables and 200 clauses
@@ -53,7 +53,7 @@ I used [cnfgen](https://cnfgen.readthedocs.io/en/latest/) to generate SAT instan
 cnfgen -q randkcnf 4 $VARIABLES $CLAUSES
 ```
 
-This command outputs the formula in [dimacs format](https://jix.github.io/varisat/manual/0.2.0/formats/dimacs.html), which is a standard format for CNF supported by every SAT solver.
+This command outputs the formula in [dimacs format](https://jix.github.io/varisat/manual/0.2.0/formats/dimacs.html), which is a standard format for CNF supported by every SAT solver. This makes it possible to validate LLM decision with another program.
 
 ### Models
 I used https://openrouter.ai to test multiple models without having to register to different LLM providers.
@@ -117,13 +117,13 @@ For SAT problems with 10 variables and 200 clauses, sometimes outputted UNSAT be
 For UNSAT problems with 10 variables and 200 clauses, it had the same issue as Gemini 3 Pro of [making up assignments](https://github.com/onsah/llm-sat-testing/blob/main/tests/gpt5.2-mini/unsat/formula_10_100_1.json).
 
 ### GPT 5.2
-This one was a lot better than others. For every SAT problem with 10 variables and 200 clauses it was able to find a [valid](https://github.com/onsah/llm-sat-testing/blob/main/tests/gpt5.2/sat/formula1.txt) [satisfying](https://github.com/onsah/llm-sat-testing/blob/main/tests/gpt5.2/sat/formula3.txt) [assignment](https://github.com/onsah/llm-sat-testing/blob/main/tests/gpt5.2/sat/formula4.txt). Therefore, I pushed it to test with 14 variables and 100 clauses, and it got half correct among 4 instances (See files with prefix `formula14_` in [here](https://github.com/onsah/llm-sat-testing/tree/main/tests/gpt5.2/sat)).
+This one was a lot better than others. For every SAT problem with 10 variables and 200 clauses it was able to find a [valid](https://github.com/onsah/llm-sat-testing/blob/main/tests/gpt5.2/sat/formula1.txt) [satisfying](https://github.com/onsah/llm-sat-testing/blob/main/tests/gpt5.2/sat/formula3.txt) [assignment](https://github.com/onsah/llm-sat-testing/blob/main/tests/gpt5.2/sat/formula4.txt). Therefore, I pushed it to test with 14 variables and 100 clauses, and it got half correct among 4 instances (See files with prefix `formula14_` in [here](https://github.com/onsah/llm-sat-testing/tree/main/tests/gpt5.2/sat)). Half correct sounds like a decent performance, but it is equivalent to random guessing.
 
 For UNSAT problems with 10 variables and 200 clauses it had the same issue as others: [making up assignments](https://github.com/onsah/llm-sat-testing/tree/main/tests/gpt5.2/unsat).
 
 ## Conclusion
 
-I don't claim that my findings are authoritative in any way. I tested with way too few formulas to make any claims about how random LLM output is. But I think it is sufficent to show that current LLMs don't consistently reason. There is a recent [research](https://arxiv.org/abs/2505.14615) that did a thorough testing with models such as GPT-4o, and found that for hard enough problems, every model degrades to random guessing. It would be nice to see this testing done again with newer models.
+Testing LLM reasoning abilities with SAT is not an original idea; there is a recent [research](https://arxiv.org/abs/2505.14615) that did a thorough testing with models such as GPT-4o and found that for hard enough problems, every model degrades to random guessing. But I couldn't find any research that used newer models like I used. It would be nice to see a more thorough testing done again with newer models.
 
-I am not very knowledgeable about LLMs, but my gut feeling is that LLMs don't seem to be able to generalize logical rules such that it can solve a class of problem with 100% of accuracy. However, their statistical strength got so much better that it's way harder to find a case where they start to break down. I don't imply anything else such as LLMs being useful or not. They can be definitely useful without being able to reason, but lack of reasoning tells me that using LLMs unsupervised can be very dangerous as we can't trust them to apply logical rules consistently. Of course in reality it makes more sense to offload as much as reasoning to external tools that are specifically designed for the problem, but as long as LLMs are doing the orchestration itself, they will always be responsible for determining how to delegate tasks to other tools, which needs proper reasoning.
+Even though my dataset is very small, I think it's sufficient to conclude that LLMs can't consistently reason. Also, their reasoning performance gets worse as the SAT instance grows, which may be due to the context window becoming too large as the model reasoning progresses, and it gets harder to remember original clauses at the top of the context. A friend of mine made an observation that how complex SAT instances are similar to working with many rules in large codebases. As we add more rules, it gets more and more likely for LLMs to forget some of them, which can be insidious. Of course that doesn't mean LLMs are useless. They can be definitely useful without being able to reason, but due to lack of reasoning, we can't blindly rely on them following the rules without a verification process in place.
 
