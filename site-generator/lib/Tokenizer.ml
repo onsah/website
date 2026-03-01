@@ -14,6 +14,7 @@ type kind =
   | LeftParen
   | RightParen
   | Semicolon
+  | Char of char
 [@@deriving sexp, compare]
 
 let show_kind : kind -> string = function
@@ -29,6 +30,7 @@ let show_kind : kind -> string = function
   | LeftParen -> "("
   | RightParen -> ")"
   | Semicolon -> ";"
+  | Char c -> c |> Char.to_string
 
 type token = {
   kind : kind;
@@ -51,6 +53,7 @@ let end_location kind start_location =
     | LeftParen -> 1
     | RightParen -> 1
     | Semicolon -> 1
+    | Char _ -> 1
   in
   Location.add_col start_location ~amount
 
@@ -160,8 +163,21 @@ let iter (chars : char Sequence.t)
     | 'a' .. 'z'
     | 'A' .. 'Z'
     | '0' .. '9'
-    | '<' | '>' | '/' | '=' | '"' | '\'' | '-' | ',' | '?' | ':' | '@' | '+' ->
-        true
+    | '<'
+    | '>'
+    | '/'
+    | '='
+    | '"'
+    | '\''
+    | '-'
+    | ','
+    | '?'
+    | ':'
+    | '@'
+    | '+'
+    | '!'
+    | '['
+    | ']' -> true
     | _ -> false
   in
   chars |> with_location |> default

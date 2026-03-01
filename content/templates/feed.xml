@@ -17,7 +17,7 @@
          <link>{{post.url}}</link>
          <guid>{{post.url}}</guid>
          <pubDate>{{post.createdatRfc822}} 00:00:00 GMT</pubDate>
-         <description>{{post.content}}</description>
+         <description><![CDATA[{{post.content}}]]></description>
       </item>
       end}}
    </channel>

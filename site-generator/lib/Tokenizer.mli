@@ -13,6 +13,7 @@ type kind =
   | LeftParen
   | RightParen
   | Semicolon
+  | Char of char
 [@@deriving sexp, compare]
 
 val show_kind : kind -> string
