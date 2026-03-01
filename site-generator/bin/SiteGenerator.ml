@@ -42,7 +42,7 @@ let post_path ~(title : string) =
     (Path.from
        ((title |> String.lowercase
         |> Str.global_replace (Str.regexp " ") "-"
-        |> Str.global_replace (Str.regexp "\?") "")
+        |> Str.global_replace (Str.regexp "\\?") "")
        ^ ".html"))
 
 let extract_summary ~post_component =
@@ -140,113 +140,119 @@ let generate_context ~content_path : Context.context =
   Map.of_alist_exn
     [ ("components", generate_components_context ~content_path); index; posts ]
 
+let generate_index_file ~(content_path : Path.t) ~context : output_file =
+  {
+    content =
+      TemplatingEngine.run
+        ~template:
+          (Path.join content_path
+             (Path.from_parts [ "templates"; "index.html" ])
+          |> DiskIO.read_all)
+        ~context
+      |> Result.map_error ~f:TemplatingEngine.show_error
+      |> Result.ok_or_failwith;
+    path = Path.from "index.html";
+  }
+
+let generate_style_file ~(content_path : Path.t) =
+  { content = generate_style ~content_path; path = Path.from "style.css" }
+
+let generate_highlight_js_file ~(content_path : Path.t) =
+  let highlight_js_path =
+    Path.join content_path (Path.from_parts [ "highlight"; "highlight.min.js" ])
+  in
+  {
+    content = DiskIO.read_all highlight_js_path;
+    path = Path.from "highlight.js";
+  }
+
+let generate_blog_file ~(content_path : Path.t) ~context : output_file =
+  {
+    content =
+      TemplatingEngine.run
+        ~template:
+          (Path.join content_path (Path.from_parts [ "templates"; "blog.html" ])
+          |> DiskIO.read_all)
+        ~context
+      |> Result.map_error ~f:TemplatingEngine.show_error
+      |> Result.ok_or_failwith;
+    path = Path.from "blog.html";
+  }
+
+let generate_post_files ~(content_path : Path.t) : output_file list =
+  let module Map = Core.Map.Poly in
+  let posts_path =
+    Path.join content_path (Path.from_parts [ "pages"; "posts" ])
+  in
+  let posts_with_metadata =
+    posts_path |> DiskIO.list
+    |> List.filter ~f:(fun path -> Path.ext path = "md")
+    |> List.map ~f:(fun path ->
+           let base_name = Path.base_name path in
+           let metadata_path =
+             Path.join posts_path (Path.from (base_name ^ ".json"))
+           in
+           let metadata =
+             metadata_path |> DiskIO.read_all |> Yojson.Basic.from_string
+           in
+           let metadata = parse_post_metadata ~metadata in
+           (path, metadata))
+  in
+  posts_with_metadata
+  |> List.map ~f:(fun (path, { title; created_at }) ->
+         let template =
+           Path.join content_path (Path.from_parts [ "templates"; "post.html" ])
+           |> DiskIO.read_all
+         in
+         let content =
+           generate_html_from_markdown
+             ~markdown_str:(DiskIO.read_all (Path.join posts_path path))
+         in
+         let context =
+           Map.of_alist_exn
+             Context.
+               [
+                 ("title", String title);
+                 ("createdat", String (created_at |> Date.to_string));
+                 ("content", String content);
+                 ("components", generate_components_context ~content_path);
+               ]
+         in
+         {
+           content =
+             TemplatingEngine.run ~template ~context
+             |> Result.map_error ~f:TemplatingEngine.show_error
+             |> Result.ok_or_failwith;
+           path = post_path ~title;
+         })
+
+let generate_feed_file ~(content_path : Path.t) ~context : output_file =
+  let open Context in
+  let template =
+    Path.join content_path (Path.from_parts [ "templates"; "feed.xml" ])
+    |> DiskIO.read_all
+  in
+  let context =
+    let date = Date.today ~zone:Timezone.utc |> Rfc822.of_date in
+    Map.add_exn context ~key:"pubDate" ~data:(String date)
+  in
+  {
+    content =
+      TemplatingEngine.run ~template ~context
+      |> Result.map_error ~f:TemplatingEngine.show_error
+      |> Result.ok_or_failwith;
+    path = Path.from "feed.xml";
+  }
+
 let generate ~content_path =
   let context = generate_context ~content_path in
-  let index_file =
-    {
-      content =
-        TemplatingEngine.run
-          ~template:
-            (Path.join content_path
-               (Path.from_parts [ "templates"; "index.html" ])
-            |> DiskIO.read_all)
-          ~context
-        |> Result.map_error ~f:TemplatingEngine.show_error
-        |> Result.ok_or_failwith;
-      path = Path.from "index.html";
-    }
-  in
-  let style_file =
-    { content = generate_style ~content_path; path = Path.from "style.css" }
-  in
+  let index_file = generate_index_file ~content_path ~context in
+  let blog_file = generate_blog_file ~content_path ~context in
+  let style_file = generate_style_file ~content_path in
   let font_files = generate_font_files ~content_path in
-  let highlight_js_file =
-    let highlight_js_path =
-      Path.join content_path
-        (Path.from_parts [ "highlight"; "highlight.min.js" ])
-    in
-    {
-      content = DiskIO.read_all highlight_js_path;
-      path = Path.from "highlight.js";
-    }
-  in
-  let blog_file =
-    {
-      content =
-        TemplatingEngine.run
-          ~template:
-            (Path.join content_path
-               (Path.from_parts [ "templates"; "blog.html" ])
-            |> DiskIO.read_all)
-          ~context
-        |> Result.map_error ~f:TemplatingEngine.show_error
-        |> Result.ok_or_failwith;
-      path = Path.from "blog.html";
-    }
-  in
-  let post_files =
-    let module Map = Core.Map.Poly in
-    let posts_path =
-      Path.join content_path (Path.from_parts [ "pages"; "posts" ])
-    in
-    let posts_with_metadata =
-      posts_path |> DiskIO.list
-      |> List.filter ~f:(fun path -> Path.ext path = "md")
-      |> List.map ~f:(fun path ->
-             let base_name = Path.base_name path in
-             let metadata_path =
-               Path.join posts_path (Path.from (base_name ^ ".json"))
-             in
-             let metadata =
-               metadata_path |> DiskIO.read_all |> Yojson.Basic.from_string
-             in
-             let metadata = parse_post_metadata ~metadata in
-             (path, metadata))
-    in
-    posts_with_metadata
-    |> List.map ~f:(fun (path, { title; created_at }) ->
-           let template =
-             Path.join content_path
-               (Path.from_parts [ "templates"; "post.html" ])
-             |> DiskIO.read_all
-           in
-           let content =
-             generate_html_from_markdown
-               ~markdown_str:(DiskIO.read_all (Path.join posts_path path))
-           in
-           let context =
-             Map.of_alist_exn
-               Context.
-                 [
-                   ("title", String title);
-                   ("createdat", String (created_at |> Date.to_string));
-                   ("content", String content);
-                   ("components", generate_components_context ~content_path);
-                 ]
-           in
-           {
-             content =
-               TemplatingEngine.run ~template ~context
-               |> Result.map_error ~f:TemplatingEngine.show_error
-               |> Result.ok_or_failwith;
-             path = post_path ~title;
-           })
-  and feed_file =
-    let template =
-      Path.join content_path (Path.from_parts [ "templates"; "feed.xml" ])
-      |> DiskIO.read_all
-    and context =
-      let date = Date.today ~zone:Timezone.utc |> Rfc822.of_date in
-      Map.add_exn context ~key:"pubDate" ~data:(String date)
-    in
-    {
-      content =
-        TemplatingEngine.run ~template ~context
-        |> Result.map_error ~f:TemplatingEngine.show_error
-        |> Result.ok_or_failwith;
-      path = Path.from "feed.xml";
-    }
-  in
+  let highlight_js_file = generate_highlight_js_file ~content_path in
+  let post_files = generate_post_files ~content_path in
+  let feed_file = generate_feed_file ~content_path ~context in
   {
     output_files =
       [ index_file; blog_file; style_file; highlight_js_file; feed_file ]
