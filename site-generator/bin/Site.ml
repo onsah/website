@@ -23,7 +23,7 @@ end = struct
   let from path =
     let parts =
       String.split_on_chars path ~on:[ '/' ]
-      |> List.filter ~f:(Fun.negate String.is_empty)
+      |> List.filter ~f:(String.is_empty |> Fun.negate)
     in
     { parts; is_relative = not (Char.equal (String.get path 0) separator) }
 
@@ -84,9 +84,9 @@ type post = {
   title : string;
   created_at : Date.t;
   (* path of the post in the website hiearachy *)
-  path : string;
-  path2 : Path.t;
-  page : page;
+  path : Path.t;
+  (* content in HTML form *)
+  content : string;
 }
 
 type t = { output_files : output_file list }

@@ -81,8 +81,7 @@ let generate_components_context ~content_path : Context.context_item =
              String (DiskIO.read_all (Path.join components_path path)) ))
     |> Map.of_alist_exn)
 
-let generate_context ~content_path : Context.context =
-  let module Map = Core.Map.Poly in
+let generate_context ~content_path ~(posts : post list) : Context.context =
   let open Context in
   let pages_path = Path.join content_path (Path.from "pages") in
   let index =
@@ -95,47 +94,32 @@ let generate_context ~content_path : Context.context =
   in
   let posts =
     ( "posts",
-      let posts_path = Path.join pages_path (Path.from "posts") in
+      let open Site in
       Collection
-        (let posts_with_metadata =
-           posts_path |> DiskIO.list
-           |> List.filter ~f:(fun path -> Path.ext path = "md")
-           |> List.map ~f:(fun path ->
-                  let base_name = Path.base_name path in
-                  let metadata_path =
-                    Path.join posts_path (Path.from (base_name ^ ".json"))
-                  in
-                  let metadata =
-                    metadata_path |> DiskIO.read_all |> Yojson.Basic.from_string
-                  in
-                  let metadata = parse_post_metadata ~metadata in
-                  (path, metadata))
-           |> List.sort ~compare:(fun (_, metadata1) (_, metadata2) ->
-                  Date.compare metadata2.created_at metadata1.created_at)
-         in
-         posts_with_metadata
-         |> List.map ~f:(fun (path, { title; created_at; _ }) ->
-                let post_text =
-                  generate_html_from_markdown
-                    ~markdown_str:(Path.join posts_path path |> DiskIO.read_all)
-                in
-                let summary =
-                  extract_summary ~post_component:(post_text |> Soup.parse)
-                in
-                Object
-                  (Map.of_alist_exn
-                     [
-                       ("title", String title);
-                       ("createdat", String (created_at |> Date.to_string));
-                       ("createdatRfc822", String (created_at |> Rfc822.of_date));
-                       ("summary", String summary);
-                       ("path", String (post_path ~title |> Path.to_string));
-                       ("content", String post_text);
-                       ( "url",
-                         String
-                           (sprintf "https://blog.aiono.dev/%s"
-                              (post_path ~title |> Path.to_string)) );
-                     ]))) )
+        (posts
+        |> List.sort ~compare:(fun post1 post2 ->
+               Date.compare post2.created_at post1.created_at)
+        |> List.map ~f:(fun post ->
+               let summary =
+                 extract_summary ~post_component:(post.content |> Soup.parse)
+               in
+               Object
+                 (Map.of_alist_exn
+                    [
+                      ("title", String post.title);
+                      ("createdat", String (post.created_at |> Date.to_string));
+                      ( "createdatRfc822",
+                        String (post.created_at |> Rfc822.of_date) );
+                      ("summary", String summary);
+                      ( "path",
+                        String (post_path ~title:post.title |> Path.to_string)
+                      );
+                      ("content", String post.content);
+                      ( "url",
+                        String
+                          (sprintf "https://blog.aiono.dev/%s"
+                             (post_path ~title:post.title |> Path.to_string)) );
+                    ]))) )
   in
   Map.of_alist_exn
     [ ("components", generate_components_context ~content_path); index; posts ]
@@ -179,42 +163,23 @@ let generate_blog_file ~(content_path : Path.t) ~context : output_file =
     path = Path.from "blog.html";
   }
 
-let generate_post_files ~(content_path : Path.t) : output_file list =
+let generate_post_files ~(content_path : Path.t) ~(posts : post list) :
+    output_file list =
   let module Map = Core.Map.Poly in
-  let posts_path =
-    Path.join content_path (Path.from_parts [ "pages"; "posts" ])
+  let template =
+    Path.join content_path (Path.from_parts [ "templates"; "post.html" ])
+    |> DiskIO.read_all
   in
-  let posts_with_metadata =
-    posts_path |> DiskIO.list
-    |> List.filter ~f:(fun path -> Path.ext path = "md")
-    |> List.map ~f:(fun path ->
-           let base_name = Path.base_name path in
-           let metadata_path =
-             Path.join posts_path (Path.from (base_name ^ ".json"))
-           in
-           let metadata =
-             metadata_path |> DiskIO.read_all |> Yojson.Basic.from_string
-           in
-           let metadata = parse_post_metadata ~metadata in
-           (path, metadata))
-  in
-  posts_with_metadata
-  |> List.map ~f:(fun (path, { title; created_at }) ->
-         let template =
-           Path.join content_path (Path.from_parts [ "templates"; "post.html" ])
-           |> DiskIO.read_all
-         in
-         let content =
-           generate_html_from_markdown
-             ~markdown_str:(DiskIO.read_all (Path.join posts_path path))
-         in
+  posts
+  |> List.map ~f:(fun post ->
+         let open Site in
          let context =
            Map.of_alist_exn
              Context.
                [
-                 ("title", String title);
-                 ("createdat", String (created_at |> Date.to_string));
-                 ("content", String content);
+                 ("title", String post.title);
+                 ("createdat", String (post.created_at |> Date.to_string));
+                 ("content", String post.content);
                  ("components", generate_components_context ~content_path);
                ]
          in
@@ -223,7 +188,7 @@ let generate_post_files ~(content_path : Path.t) : output_file list =
              TemplatingEngine.run ~template ~context
              |> Result.map_error ~f:TemplatingEngine.show_error
              |> Result.ok_or_failwith;
-           path = post_path ~title;
+           path = post_path ~title:post.title;
          })
 
 let generate_feed_file ~(content_path : Path.t) ~context : output_file =
@@ -244,14 +209,38 @@ let generate_feed_file ~(content_path : Path.t) ~context : output_file =
     path = Path.from "feed.xml";
   }
 
+let post_metadata ~(posts_path : Path.t) ~(base_name : string) =
+  let metadata_path = Path.join posts_path (Path.from (base_name ^ ".json")) in
+  let metadata = metadata_path |> DiskIO.read_all |> Yojson.Basic.from_string in
+  parse_post_metadata ~metadata
+
+(** @return List of posts *)
+let generate_posts ~(content_path : Path.t) : post list =
+  let posts_path =
+    Path.join content_path (Path.from_parts [ "pages"; "posts" ])
+  in
+  posts_path |> DiskIO.list
+  |> List.filter ~f:(fun path -> Path.ext path = "md")
+  |> List.map ~f:(fun path ->
+         printf "path: %s\n" (Path.to_string path);
+         let { title; created_at } =
+           post_metadata ~posts_path ~base_name:(path |> Path.base_name)
+         in
+         let content =
+           generate_html_from_markdown
+             ~markdown_str:(Path.join posts_path path |> DiskIO.read_all)
+         in
+         { title; created_at; path; content })
+
 let generate ~content_path =
-  let context = generate_context ~content_path in
+  let posts = generate_posts ~content_path in
+  let context = generate_context ~content_path ~posts in
   let index_file = generate_index_file ~content_path ~context in
   let blog_file = generate_blog_file ~content_path ~context in
   let style_file = generate_style_file ~content_path in
   let font_files = generate_font_files ~content_path in
   let highlight_js_file = generate_highlight_js_file ~content_path in
-  let post_files = generate_post_files ~content_path in
+  let post_files = generate_post_files ~content_path ~posts in
   let feed_file = generate_feed_file ~content_path ~context in
   {
     output_files =
