@@ -1,15 +1,17 @@
 # About Me
 
-Hi! I am Onur Sahin, I use Aiono nickname in online platforms. I am a software developer and currently MSc. student in [Freiburg University](https://uni-freiburg.de/en/) focusing on Programming Languages and especially on [Typestate systems](https://en.wikipedia.org/wiki/Typestate_analysis).
+Hi! I am Onur Sahin, I use Aiono nickname in online platforms. I am currently a Master's student in [Freiburg University](https://uni-freiburg.de/en/) on Computer Science. I currently workign on my thesis with [Peter Thiemann](http://www2.informatik.uni-freiburg.de/~thiemann/) focusing on [Typestate systems](https://en.wikipedia.org/wiki/Typestate_analysis). Also I am working part time in [JetBrains](https://www.jetbrains.com/).
 
-I got my bachelors in Computer Science from [Bilkent University](https://w3.bilkent.edu.tr/bilkent/) in 2021. After graduation, I worked full time at [Carbon Health](https://carbonhealth.com/) as a software engineer until late 2023. In 2023 I started doing masters in Computer Science at [Freiburg University](https://uni-freiburg.de/en/). I love software engineering but I always had an interest in programming languages & formal verification area so currently I am doing masters to get exposed to these fields.
+I got my bachelors in Computer Science from [Bilkent University](https://w3.bilkent.edu.tr/bilkent/) in 2021. After graduation, I worked full time at [Carbon Health](https://carbonhealth.com/) for 2.5 years. In 2023 I started doing masters in Computer Science at [Freiburg University](https://uni-freiburg.de/en/). During my Master's I did an internship in [AWS Redshift Engine](https://docs.aws.amazon.com/redshift/latest/mgmt/welcome.html) about data encodings.
 
-My favorite programming languages are [OCaml](https://ocaml.org/) and [Rust](https://www.rust-lang.org/). I have industrial [Scala](https://www.scala-lang.org/) and [Kotlin](https://kotlinlang.org/) experience. I really like [Nix](https://wiki.nixos.org/wiki/Nix_package_manager) build system and use [NixOS](https://wiki.nixos.org/wiki/Overview_of_the_NixOS_Linux_distribution) for my daily computer and personal server.
+I am interested in systems programming in general. My specific interests are:
+- Compilers & type checking
+- Formal verification & static analysis
+- Database engines
+- Browser engines
 
-I like to play guitar a lot and I want to write my music in the future. I am also a huge music fan (Favorite groups are Opeth and Porcupine Tree but I listen to a lot of different types of music). And I have a vinyl collection that is ever growing. I like to play board games. I am not very sportive person but I try to get into bouldering (spoiler: I sprained my ankle and it didn't help on my enthusiasm).
-
-## Profiles
-If you are interested, feel free to contact me from the following profiles.
-* [Email](mailto:sahinonur2000@hotmail.com)
-* [Mastodon](https://mastodon.social/@aiono)
-* [Github](https://github.com/onsah)
+Some of my hobbies:
+- Playing electric guitar
+- Listening music (Especially progressive metal but I listen a lot of different stuff)
+- Playing board games
+- I am not very sportive person but I try to get into bouldering (spoiler: I sprained my ankle and it didn't help on my enthusiasm)
