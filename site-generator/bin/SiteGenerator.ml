@@ -70,6 +70,16 @@ let generate_font_files ~(content_path : Path.t) =
         path = Path.join (Path.from "fonts") name;
       })
 
+let generate_icon_files ~(content_path : Path.t) =
+  let fonts_dir = Path.join content_path (Path.from_parts [ "css"; "icons" ]) in
+  let font_names = DiskIO.list fonts_dir in
+  List.map font_names ~f:(fun name ->
+      let path = Path.join fonts_dir name in
+      {
+        content = DiskIO.read_all path;
+        path = Path.join (Path.from "icons") name;
+      })
+
 let generate_components_context ~content_path : Context.context_item =
   let module Map = Core.Map.Poly in
   let open Context in
@@ -242,8 +252,9 @@ let generate ~content_path =
   let highlight_js_file = generate_highlight_js_file ~content_path in
   let post_files = generate_post_files ~content_path ~posts in
   let feed_file = generate_feed_file ~content_path ~context in
+  let icon_files = generate_icon_files ~content_path in
   {
     output_files =
       [ index_file; blog_file; style_file; highlight_js_file; feed_file ]
-      @ font_files @ post_files;
+      @ font_files @ post_files @ icon_files;
   }

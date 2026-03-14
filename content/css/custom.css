@@ -13,10 +13,16 @@
 @font-face {
     font-family: "Source Serif 4";
     src: url("fonts/SourceSerif4-Regular.ttf");
-}  
+}
+
+@font-face {
+    font-family: "JetBrains Mono";
+    src: url("fonts/JetBrainsMono-Regular.ttf");
+}
 
 :root {
-    --sans-font: "Source Serif 4", "sans-serif";
+    --sans-font: "JetBrains Mono", "sans-serif";
+    --mono-font: "JetBrains Mono", monospace;
 }
 
 html,
@@ -73,6 +79,11 @@ nav > .links {
 nav > .links > a {
     margin-bottom: 0;
     font-size: large;
+}
+
+nav > .social > img {
+    height: 1.5em;
+    margin-left: .75em;
 }
 
 .fill {
