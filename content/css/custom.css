@@ -62,6 +62,7 @@ header > nav {
     height: 100%;
     align-items: center;
     grid-column: 2;
+    border-bottom: solid .15rem var(--accent);
 }
 
 nav > .title {
@@ -78,7 +79,7 @@ nav > .links {
 
 nav > .links > a {
     margin-bottom: 0;
-    font-size: large;
+    font-size: x-large;
 }
 
 nav > .social > img {

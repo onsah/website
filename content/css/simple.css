@@ -91,7 +91,6 @@ body > header {
   background-color: var(--bg);
   text-align: center;
   grid-column: 1 / -1;
-  border-bottom: solid 2px var(--accent);
 }
 
 body > header h1 {
