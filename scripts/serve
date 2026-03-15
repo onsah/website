@@ -1,5 +1,7 @@
 #!/usr/bin/env nu
 
-export def main [] {
-    miniserve ./dist --index index.html --port 9090
+export def main [
+    --website_path: string = ./result/dist
+] {
+    miniserve $website_path --index index.html --port 9090
 }
