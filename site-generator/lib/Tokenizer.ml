@@ -90,7 +90,7 @@ let iter (chars : char Sequence.t)
     ({ yield; abort } : (token, error) Generator.fallible_iter_args) : unit =
   let rec default chars =
     match Sequence.next chars with
-    | Some (((char, start_location) as char_loc), chars) -> (
+    | Some ((char, start_location), chars) -> (
         match char with
         | '{' -> left_curly chars ~start_location
         | '}' -> right_curly chars ~start_location
@@ -109,9 +109,7 @@ let iter (chars : char Sequence.t)
         | ';' ->
             yield (make_token Semicolon start_location);
             default chars
-        | char when is_text_char char ->
-            text chars (String.of_char char) ~start_location
-        | _ -> abort (`TokenizerUnexpected char_loc))
+        | char -> text chars (String.of_char char) ~start_location)
     | None -> ()
   and left_curly chars ~start_location =
     match Sequence.next chars with
@@ -176,6 +174,7 @@ let iter (chars : char Sequence.t)
     | '@'
     | '+'
     | '!'
+    | '%'
     | '['
     | ']' -> true
     | _ -> false
