@@ -87,6 +87,21 @@ nav > .social > img {
     margin-left: .75em;
 }
 
+footer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.social > img {
+    height: 1.5em;
+    margin-left: .75em;
+}
+
+.links > .social {
+    text-decoration: none;
+}
+
 .fill {
     display: flex;
     flex-grow: 1;

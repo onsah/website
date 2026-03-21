@@ -110,7 +110,6 @@ main {
 }
 
 body > footer {
-  margin-top: 4rem;
   padding: 2rem 1rem 1.5rem 1rem;
   color: var(--text-light);
   font-size: 0.9rem;
