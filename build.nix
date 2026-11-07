@@ -13,7 +13,6 @@ stdenv.mkDerivation {
 
   src = let
     website-content = ./content;
-    makefile = ./Makefile;
   in
   fileset.toSource {
     root = ./.;
@@ -21,7 +20,6 @@ stdenv.mkDerivation {
       (fileset.gitTracked ./.)
       (fileset.unions [
         website-content
-        makefile
       ]);
   };
 
